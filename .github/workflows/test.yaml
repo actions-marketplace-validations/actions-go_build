@@ -1,0 +1,65 @@
+name: "Test build action"
+
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  push:
+  pull_request:
+
+jobs:
+  test-without-pre-build:
+    strategy:
+      matrix:
+        runs-on:
+        - ubuntu-latest
+        #- windows-latest # Need to work a bit more to support windows
+        - macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: ./
+      id: build
+      with:
+        action_path: ${{ github.workspace }}
+        action: my-action
+        go-version: "1.21"
+    - name: "Output path is os and architecture dependant"
+      run: |
+        [ "${{ steps.build.outputs.install-path }}" == "${{ github.workspace }}/my-action-$(uname -s)-$(uname -m)" ]
+    - name: "output can be run"
+      run: |
+        ${{ steps.build.outputs.install-path }}
+    - name: "output runs as expected"
+      run: |
+        [ $(${{ steps.build.outputs.install-path }}) == "success" ]
+
+  test-with-pre-build:
+    strategy:
+      matrix:
+        runs-on:
+        - ubuntu-latest
+        #- windows-latest # Need to work a bit more to support windows
+        - macos-latest
+    runs-on: ${{ matrix.runs-on }}
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-go@v4
+      with:
+        go-version: 1.21
+    - run: |
+        echo "#!/bin/bash" >> "${{ github.workspace }}/my-action-$(uname -s)-$(uname -m)"
+        echo "echo prebuilt" >> "${{ github.workspace }}/my-action-$(uname -s)-$(uname -m)"
+        chmod +x "${{ github.workspace }}/my-action-$(uname -s)-$(uname -m)"
+    - uses: ./
+      id: build
+      with:
+        action_path: ${{ github.workspace }}
+        action: my-action
+    - name: "Output path is os and architecture dependant"
+      run: |
+        [ "${{ steps.build.outputs.install-path }}" == "${{ github.workspace }}/my-action-$(uname -s)-$(uname -m)" ]
+    - name: "output can be run"
+      run: |
+        ${{ steps.build.outputs.install-path }}
+    - name: "output runs as expected"
+      run: |
+        [ $(${{ steps.build.outputs.install-path }}) == "prebuilt" ]
