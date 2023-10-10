@@ -1,8 +1,7 @@
 name: 'Build go action'
 description: |
-  This action allows you to seemlessly build any action written in plain golang.
-  See https://github.com/actions-go/toolkit for more information how to interact with
-  GitHub actions from golang.
+  Seamlessly build any action written in plain golang.
+  See https://github.com/actions-go/toolkit for more information
 author: 'actions-go'
 inputs:
   action_path:
