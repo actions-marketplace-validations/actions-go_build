@@ -2,6 +2,9 @@ name: 'Build go action'
 description: |
   Seamlessly build any action written in plain golang.
   See https://github.com/actions-go/toolkit for more information
+branding:
+  icon: 'battery-charging'
+  color: 'green'
 author: 'actions-go'
 inputs:
   action_path:
