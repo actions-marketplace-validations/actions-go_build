@@ -1,0 +1,41 @@
+name: "Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release'
+        required: true
+        type: string
+      message:
+        description: 'The message in the release'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    - run: |
+        git config --global user.name "release-bot"
+        git config --global user.email "actions-go@noreply.github.com"
+        git fetch
+
+        short=$( echo "${{ inputs.version }}" | cut -d. -f1 )
+        git checkout ${short} || git checkout --orphan ${short}
+
+        git checkout "${{ github.sha }}" -- README.md action.yml
+        git add README.md action.yml
+        git commit -m "Release ${{ inputs.version }}" -m "${{ inputs.message }}"
+
+        git tag -a "${{ inputs.version }}" -m "${{ inputs.message }}"
+
+        git log -p
+
+        git push origin "${short}:refs/heads/${short}" "${{ inputs.version }}:refs/tags/${{ inputs.version }}"
